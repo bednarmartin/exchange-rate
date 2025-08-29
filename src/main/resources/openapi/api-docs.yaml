@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+tags:
+- name: Exchange Rates
+  description: Operations related to exchange rate conversions
+paths:
+  /api/exchange/convert:
+    post:
+      tags:
+      - Exchange Rates
+      summary: Convert currency
+      description: Converts an amount from one currency to another.
+      operationId: convert
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConversionResponse"
+  /api/exchange/rates:
+    get:
+      tags:
+      - Exchange Rates
+      summary: Get all exchange rates
+      description: Returns a list of supported exchange rates.
+      operationId: getExchangeRates
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExchangeRatesResponse"
+components:
+  schemas:
+    ConversionRequest:
+      type: object
+      properties:
+        fromCurrency:
+          type: string
+          description: Currency code you want to convert from
+          example: USD
+        toCurrency:
+          type: string
+          description: Currency code you want to convert to
+          example: EUR
+        amount:
+          type: number
+          description: Amount to convert
+          example: 100.5
+    ConversionResponse:
+      type: object
+      description: Response object containing the result of a currency conversion.
+      properties:
+        fromCurrency:
+          type: string
+          description: The original currency code provided by the client.
+          example: USD
+        toCurrency:
+          type: string
+          description: The target currency code to which the amount is converted.
+          example: EUR
+        originalAmount:
+          type: number
+          description: The original amount requested for conversion.
+          example: 100.0
+        convertedAmount:
+          type: number
+          description: The converted amount in the target currency.
+          example: 85.67
+    ExchangeRatesResponse:
+      type: object
+      description: Response object representing an exchange rate for a given currency.
+      properties:
+        currency:
+          type: string
+          description: The 3-letter ISO currency code.
+          example: USD
+        rate:
+          type: number
+          description: The exchange rate of the currency against EUR.
+          example: 1.1676
