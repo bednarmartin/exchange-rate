@@ -5,7 +5,7 @@ import com.bednarmartin.exchange_rate.dto.request.ConversionRequest;
 import com.bednarmartin.exchange_rate.dto.response.ConversionResponse;
 import com.bednarmartin.exchange_rate.dto.response.ExchangeRatesResponse;
 import com.bednarmartin.exchange_rate.entity.ExchangeRate;
-import com.bednarmartin.exchange_rate.exceptions.CurrencyCodeNotFoundException;
+import com.bednarmartin.exchange_rate.exception.CurrencyCodeNotFoundException;
 import com.bednarmartin.exchange_rate.mapper.ExchangeRateMapper;
 import com.bednarmartin.exchange_rate.repository.ExchangeRateRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,25 +51,25 @@ public class ExchangeRateService implements IExchangeRatesService {
         return CurrencyConstants.EUR.equalsIgnoreCase(currency);
     }
 
-    private BigDecimal multiplyByRate(String toCurrency, BigDecimal amount) {
-        ExchangeRate rate = findRateOrThrow(toCurrency);
+    private BigDecimal multiplyByRate(String currency, BigDecimal amount) {
+        ExchangeRate rate = findRate(currency);
         return amount.multiply(rate.getRate()).setScale(2, RoundingMode.HALF_EVEN);
     }
 
-    private BigDecimal divideByRate(String fromCurrency, BigDecimal amount) {
-        ExchangeRate rate = findRateOrThrow(fromCurrency);
+    private BigDecimal divideByRate(String currency, BigDecimal amount) {
+        ExchangeRate rate = findRate(currency);
         return amount.divide(rate.getRate(), 2, RoundingMode.HALF_EVEN);
     }
 
     private BigDecimal convertViaEuro(String fromCurrency, String toCurrency, BigDecimal amount) {
-        ExchangeRate fromRate = findRateOrThrow(fromCurrency);
-        ExchangeRate toRate = findRateOrThrow(toCurrency);
+        ExchangeRate fromRate = findRate(fromCurrency);
+        ExchangeRate toRate = findRate(toCurrency);
 
         BigDecimal eurAmount = amount.divide(fromRate.getRate(), 4, RoundingMode.HALF_EVEN);
         return eurAmount.multiply(toRate.getRate()).setScale(2, RoundingMode.HALF_EVEN);
     }
 
-    private ExchangeRate findRateOrThrow(String currency) {
-        return exchangeRatesRepository.findExchangeRateByCurrencyCode(currency).orElseThrow(() -> new CurrencyCodeNotFoundException("Currency code: " + currency + " not found"));
+    private ExchangeRate findRate(String currency) {
+        return exchangeRatesRepository.findExchangeRateByCurrencyCode(currency).orElseThrow(() -> new CurrencyCodeNotFoundException(currency));
     }
 }
