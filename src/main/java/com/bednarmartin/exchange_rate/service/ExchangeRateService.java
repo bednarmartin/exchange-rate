@@ -41,7 +41,12 @@ class ExchangeRateService implements IExchangeRatesService {
 
         convertedAmount = getConvertedAmount(from, to, amount);
 
-        return new ConversionResponse(from, to, amount, convertedAmount);
+        return ConversionResponse.builder()
+                .fromCurrency(from)
+                .toCurrency(to)
+                .originalAmount(amount)
+                .convertedAmount(convertedAmount)
+                .build();
     }
 
     private BigDecimal getConvertedAmount(String from, String to, BigDecimal amount) {

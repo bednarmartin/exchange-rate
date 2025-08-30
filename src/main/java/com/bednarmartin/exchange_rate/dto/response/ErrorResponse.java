@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Schema(description = "Represents an error response returned by the API")
+@Schema(name = "ErrorResponse", description = "Represents an error response returned by the API")
 @Builder
 public record ErrorResponse(
 

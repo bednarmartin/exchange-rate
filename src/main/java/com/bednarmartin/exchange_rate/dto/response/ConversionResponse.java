@@ -1,10 +1,12 @@
 package com.bednarmartin.exchange_rate.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 
 @Schema(name = "ConversionResponse", description = "Response object containing the result of a currency conversion.")
+@Builder
 public record ConversionResponse(
         @Schema(description = "The original currency code provided by the client.", example = "USD")
         String fromCurrency,

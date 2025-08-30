@@ -24,11 +24,17 @@ paths:
         required: true
       responses:
         "200":
-          description: OK
+          description: Conversion successful
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ConversionResponse"
+        "404":
+          description: Currency code not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/exchange/rates:
     get:
       tags:
@@ -38,30 +44,14 @@ paths:
       operationId: getExchangeRates
       responses:
         "200":
-          description: OK
+          description: List of exchange rates
           content:
             '*/*':
               schema:
                 type: array
-                items:
-                  $ref: "#/components/schemas/ExchangeRatesResponse"
+                $ref: "#/components/schemas/ExchangeRatesResponse"
 components:
   schemas:
-    ConversionRequest:
-      type: object
-      properties:
-        fromCurrency:
-          type: string
-          description: Currency code you want to convert from
-          example: USD
-        toCurrency:
-          type: string
-          description: Currency code you want to convert to
-          example: EUR
-        amount:
-          type: number
-          description: Amount to convert
-          example: 100.5
     ConversionResponse:
       type: object
       description: Response object containing the result of a currency conversion.
@@ -82,6 +72,50 @@ components:
           type: number
           description: The converted amount in the target currency.
           example: 85.67
+    ErrorResponse:
+      type: object
+      description: Represents an error response returned by the API
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+          example: 2025-08-30T12:34:56.789
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: Short HTTP status description
+          example: Bad Request
+        errorMessages:
+          type: array
+          description: "List of validation errors, if any"
+          items:
+            type: string
+    ConversionRequest:
+      type: object
+      properties:
+        fromCurrency:
+          type: string
+          description: Currency code you want to convert from
+          example: USD
+          pattern: "^[A-Z]{3}$"
+        toCurrency:
+          type: string
+          description: Currency code you want to convert to
+          example: EUR
+          pattern: "^[A-Z]{3}$"
+        amount:
+          type: number
+          description: Amount to convert
+          example: 100.5
+      required:
+      - amount
+      - fromCurrency
+      - toCurrency
     ExchangeRatesResponse:
       type: object
       description: Response object representing an exchange rate for a given currency.
