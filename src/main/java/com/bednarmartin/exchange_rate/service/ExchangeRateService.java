@@ -1,6 +1,5 @@
 package com.bednarmartin.exchange_rate.service;
 
-import com.bednarmartin.exchange_rate.constants.CurrencyConstants;
 import com.bednarmartin.exchange_rate.dto.request.ConversionRequest;
 import com.bednarmartin.exchange_rate.dto.response.ConversionResponse;
 import com.bednarmartin.exchange_rate.dto.response.ExchangeRatesResponse;
@@ -9,6 +8,7 @@ import com.bednarmartin.exchange_rate.exception.CurrencyCodeNotFoundException;
 import com.bednarmartin.exchange_rate.mapper.ExchangeRateMapper;
 import com.bednarmartin.exchange_rate.repository.ExchangeRateRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,11 +17,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ExchangeRateService implements IExchangeRatesService {
+class ExchangeRateService implements IExchangeRatesService {
 
     private final ExchangeRateRepository exchangeRatesRepository;
 
     private final ExchangeRateMapper exchangeRateMapper;
+
+    @Value("${currency.base}")
+    private String baseCurrency;
 
     @Override
     public List<ExchangeRatesResponse> getExchangeRates() {
@@ -36,19 +39,26 @@ public class ExchangeRateService implements IExchangeRatesService {
         BigDecimal amount = conversionRequest.amount();
         BigDecimal convertedAmount;
 
-        if (isEuro(from)) {
-            convertedAmount = multiplyByRate(to, amount);
-        } else if (isEuro(to)) {
-            convertedAmount = divideByRate(from, amount);
-        } else {
-            convertedAmount = convertViaEuro(from, to, amount);
-        }
+        convertedAmount = getConvertedAmount(from, to, amount);
 
         return new ConversionResponse(from, to, amount, convertedAmount);
     }
 
-    private boolean isEuro(String currency) {
-        return CurrencyConstants.EUR.equalsIgnoreCase(currency);
+    private BigDecimal getConvertedAmount(String from, String to, BigDecimal amount) {
+        if(from.equals(to)) {
+            return amount;
+        }
+        if (isBaseCurrency(from)) {
+            return multiplyByRate(to, amount);
+        }
+        if (isBaseCurrency(to)) {
+            return divideByRate(from, amount);
+        }
+        return convertViaEuro(from, to, amount);
+    }
+
+    private boolean isBaseCurrency(String currency) {
+        return baseCurrency != null ? baseCurrency.equals(currency) : "EUR".equals(currency);
     }
 
     private BigDecimal multiplyByRate(String currency, BigDecimal amount) {
@@ -70,6 +80,7 @@ public class ExchangeRateService implements IExchangeRatesService {
     }
 
     private ExchangeRate findRate(String currency) {
-        return exchangeRatesRepository.findExchangeRateByCurrencyCode(currency).orElseThrow(() -> new CurrencyCodeNotFoundException(currency));
+        return exchangeRatesRepository.findExchangeRateByCurrencyCode(currency)
+                .orElseThrow(() -> new CurrencyCodeNotFoundException(currency));
     }
 }

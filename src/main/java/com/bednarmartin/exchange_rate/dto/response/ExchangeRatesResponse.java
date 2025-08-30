@@ -4,7 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
-@Schema(name = "ExchangeRatesResponse", description = "Response object representing an exchange rate for a given currency.")
+@Schema(name = "ExchangeRatesResponse",
+        description = "Response object representing an exchange rate for a given currency.")
 public record ExchangeRatesResponse(
 
         @Schema(description = "The 3-letter ISO currency code.", example = "USD")

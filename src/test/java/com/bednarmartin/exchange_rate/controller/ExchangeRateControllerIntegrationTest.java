@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,13 +23,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class ExchangeRateControllerIntegrationTest {
+class ExchangeRateControllerIntegrationTest {
 
     private final MockMvc mockMvc;
 
     private final ExchangeRateRepository exchangeRateRepository;
 
     private final ObjectMapper objectMapper;
+
+    private final String BASE_URL = "/api/exchange/";
+
+    private final String RATES_URL = "rates";
+
+    private final String CONVERT_URL = "convert";
 
     @BeforeEach
     void setup() {
@@ -38,8 +45,8 @@ public class ExchangeRateControllerIntegrationTest {
     }
 
     @Test
-    public void testGetExchangeRate() throws Exception {
-        mockMvc.perform(get("/api/exchange/rates")
+    void testGetExchangeRate() throws Exception {
+        mockMvc.perform(get(BASE_URL + RATES_URL)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].currency").value("USD"))
@@ -51,7 +58,7 @@ public class ExchangeRateControllerIntegrationTest {
     @Test
     void testConvert_OK() throws Exception {
         ConversionRequest request = new ConversionRequest("EUR", "USD", BigDecimal.valueOf(100));
-        mockMvc.perform(post("/api/exchange/convert")
+        mockMvc.perform(post(BASE_URL + CONVERT_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -65,9 +72,55 @@ public class ExchangeRateControllerIntegrationTest {
     @Test
     void testConvert_NotFound() throws Exception {
         ConversionRequest request = new ConversionRequest("CZK", "USD", BigDecimal.valueOf(100));
-        mockMvc.perform(post("/api/exchange/convert")
+        mockMvc.perform(post(BASE_URL + CONVERT_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
     }
-}
+
+    @Test
+    void testConvert_BadRequest_NegativeAmount() throws Exception {
+        ConversionRequest request = new ConversionRequest("CZK", "USD", BigDecimal.valueOf(-100));
+        mockMvc.perform(post(BASE_URL + CONVERT_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.error").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.errorMessages[0]").value("Amount must be greater than 0"));
+    }
+
+    @Test
+    void testConvert_BadRequest_BlankFromCurrency() throws Exception {
+        ConversionRequest request = new ConversionRequest("", "USD", BigDecimal.valueOf(100));
+        mockMvc.perform(post(BASE_URL + CONVERT_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.error").value(HttpStatus.BAD_REQUEST.getReasonPhrase()));
+    }
+
+    @Test
+    void testConvert_BadRequest_BadToCurrency() throws Exception {
+        ConversionRequest request = new ConversionRequest("USD", "USDc", BigDecimal.valueOf(100));
+        mockMvc.perform(post(BASE_URL + CONVERT_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.error").value(HttpStatus.BAD_REQUEST.getReasonPhrase()));
+    }
+
+    @Test
+    void testConvert_BadRequest_BadUrl() throws Exception {
+        mockMvc.perform(get(BASE_URL + RATES_URL + "/X"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
+                .andExpect(jsonPath("$.errorMessages[0]").value("No endpoint GET " + BASE_URL + RATES_URL + "/X."));
+    }}

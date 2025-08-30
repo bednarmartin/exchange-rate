@@ -10,12 +10,12 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class ExchangeRateMapperTest {
+class ExchangeRateMapperTest {
 
-    ExchangeRateMapper exchangeRateMapper = new ExchangeRateMapperImpl();
+    private final ExchangeRateMapper exchangeRateMapper = new ExchangeRateMapperImpl();
 
     @Test
-    public void testToExchangeRateResponse() {
+    void testToExchangeRateResponse() {
         String currencyCode = "USD";
         BigDecimal rate = BigDecimal.valueOf(1.10);
         ExchangeRate exchangeRate = new ExchangeRate(currencyCode, rate);

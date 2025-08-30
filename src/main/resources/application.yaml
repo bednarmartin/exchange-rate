@@ -1,4 +1,7 @@
 spring:
+  web:
+    resources:
+      add-mappings: false
   application:
     name: exchange-rate
   datasource:
@@ -17,3 +20,6 @@ spring:
     init:
       mode: always
 
+
+currency:
+  base: EUR

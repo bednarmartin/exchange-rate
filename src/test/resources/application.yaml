@@ -1,0 +1,6 @@
+currency:
+  base: EUR
+spring:
+  web:
+    resources:
+      add-mappings: false

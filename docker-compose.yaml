@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  exchange-rate-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exchange-rate
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

@@ -7,11 +7,11 @@ import com.bednarmartin.exchange_rate.entity.ExchangeRate;
 import com.bednarmartin.exchange_rate.exception.CurrencyCodeNotFoundException;
 import com.bednarmartin.exchange_rate.mapper.ExchangeRateMapper;
 import com.bednarmartin.exchange_rate.repository.ExchangeRateRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,7 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ExchangeRateServiceTest {
+@ExtendWith(MockitoExtension.class)
+class ExchangeRateServiceTest {
     @Mock
     private ExchangeRateRepository repository;
 
@@ -30,12 +31,6 @@ public class ExchangeRateServiceTest {
 
     @InjectMocks
     private ExchangeRateService service;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
 
     @Test
     void testGetExchangeRates() {
@@ -79,11 +74,12 @@ public class ExchangeRateServiceTest {
         when(repository.findExchangeRateByCurrencyCode(toCurrencyCode)).thenReturn(Optional.of(exchangeRate));
 
         ConversionResponse response = service.convert(request);
+
         assertNotNull(response);
         assertEquals(fromCurrencyCode, response.fromCurrency());
         assertEquals(toCurrencyCode, response.toCurrency());
         assertEquals(amount, response.originalAmount());
-        assertEquals(BigDecimal.valueOf(200).doubleValue(), response.convertedAmount().doubleValue());
+        assertEquals(0, BigDecimal.valueOf(200).compareTo(response.convertedAmount()));
     }
 
     @Test
@@ -99,11 +95,12 @@ public class ExchangeRateServiceTest {
         when(repository.findExchangeRateByCurrencyCode(fromCurrencyCode)).thenReturn(Optional.of(exchangeRate));
 
         ConversionResponse response = service.convert(request);
+
         assertNotNull(response);
         assertEquals(fromCurrencyCode, response.fromCurrency());
         assertEquals(toCurrencyCode, response.toCurrency());
         assertEquals(amount, response.originalAmount());
-        assertEquals(BigDecimal.valueOf(50).doubleValue(), response.convertedAmount().doubleValue());
+        assertEquals(0, BigDecimal.valueOf(50).compareTo(response.convertedAmount()));
     }
 
     @Test
@@ -123,11 +120,29 @@ public class ExchangeRateServiceTest {
         when(repository.findExchangeRateByCurrencyCode(toCurrencyCode)).thenReturn(Optional.of(exchangeRateCZK));
 
         ConversionResponse response = service.convert(request);
+
         assertNotNull(response);
         assertEquals(fromCurrencyCode, response.fromCurrency());
         assertEquals(toCurrencyCode, response.toCurrency());
         assertEquals(amount, response.originalAmount());
-        assertEquals(BigDecimal.valueOf(150).doubleValue(), response.convertedAmount().doubleValue());
+        assertEquals(0, BigDecimal.valueOf(150).compareTo(response.convertedAmount()));
+    }
+
+    @Test
+    void testConvert_sameCurrencies() {
+        String fromCurrencyCode = "USD";
+        String toCurrencyCode = "USD";
+        BigDecimal amount = BigDecimal.valueOf(100);
+
+        ConversionRequest request = new ConversionRequest(fromCurrencyCode, toCurrencyCode, amount);
+
+        ConversionResponse response = service.convert(request);
+
+        assertNotNull(response);
+        assertEquals(fromCurrencyCode, response.fromCurrency());
+        assertEquals(toCurrencyCode, response.toCurrency());
+        assertEquals(amount, response.originalAmount());
+        assertEquals(0, response.originalAmount().compareTo(response.convertedAmount()));
     }
 
     @Test
