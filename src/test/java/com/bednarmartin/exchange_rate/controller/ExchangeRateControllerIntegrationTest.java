@@ -50,6 +50,7 @@ class ExchangeRateControllerIntegrationTest {
         mockMvc.perform(get(BASE_URL + RATES_URL)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].currency").value("USD"))
                 .andExpect(jsonPath("$[0].rate").value(1.12))
                 .andExpect(jsonPath("$[1].currency").value("GBP"))
