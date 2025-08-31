@@ -2,10 +2,10 @@ package com.bednarmartin.exchange_rate.repository;
 
 import com.bednarmartin.exchange_rate.entity.ExchangeRate;
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -14,16 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
+@Transactional
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ExchangeRateRepositoryTest {
 
     private final ExchangeRateRepository exchangeRateRepository;
-
-    @BeforeEach
-    void setUp() {
-        exchangeRateRepository.deleteAll();
-    }
-
 
     @Test
     void testFindExchangeRateByCurrencyCode_OK() {

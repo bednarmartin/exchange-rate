@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -23,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
+@Transactional
 class ExchangeRateControllerIntegrationTest {
 
     private final MockMvc mockMvc;
@@ -39,7 +41,6 @@ class ExchangeRateControllerIntegrationTest {
 
     @BeforeEach
     void setup() {
-        exchangeRateRepository.deleteAll();
         exchangeRateRepository.save(new ExchangeRate("USD", BigDecimal.valueOf(1.12)));
         exchangeRateRepository.save(new ExchangeRate("GBP", BigDecimal.valueOf(0.85)));
     }
